@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
+import Dropdown from '../Dropdown'
 
-const MainForm = ({onChange, onSubmit}) => {
+const MainForm = ({onChange, onSubmit, location, addToFavorites, favorites, onClick}) => {
+
   return (
     <form action="/" onSubmit={onSubmit}>
       <input
@@ -8,8 +10,15 @@ const MainForm = ({onChange, onSubmit}) => {
         className="form__input"
         type="text"
         id="location"
+        value={location}
         onChange={onChange}
       />
+      <Dropdown
+            location={location}
+            addToFavorites={addToFavorites}
+            favorites={favorites}
+            onClick={onClick}
+          />
     </form>
   );
 };

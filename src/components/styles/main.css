@@ -2,6 +2,8 @@
 
 :root {
   --orange-background: #ff8900;
+  --text-color: #747474;
+
   --btn-unit-size: 48px;
 
   --wrapper-padding: 13px;
@@ -15,6 +17,10 @@ body {
   padding: 0;
   margin: 0;
   height: 100vh;
+}
+
+h1{
+  font-size: 200px;
 }
 
 button {
@@ -50,10 +56,8 @@ input::-webkit-input-placeholder {
   outline: none;
 }
 
-.form__btn-plus {
-  position: absolute;
-  top: 25px;
-  right: 15px;
+
+.form__btn {
 
   width: 30px;
   height: 30px;
@@ -68,7 +72,15 @@ input::-webkit-input-placeholder {
   transition: 0.3s ease-in-out;
 }
 
-.form__btn-plus:hover {
+.form__btn-text{
+  color: var(--text-color);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.form__btn:active {
   background: rgba(38, 38, 38, 0.1);
 }
 
@@ -99,13 +111,13 @@ input::-webkit-input-placeholder {
   border-radius: 15px;
   width: var(--btn-unit-size);
   height: var(--btn-unit-size);
+  color: var(--text-color);
   font-size: 18px;
   font-weight: 900;
 
   box-shadow: inset -1px -1px 10px rgba(47, 47, 47, 0.5);
   background: #ffffff;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  color: #747474;
 }
 
 .main {
@@ -123,11 +135,11 @@ input::-webkit-input-placeholder {
   font-family: "Roboto", sans-serif;
   font-weight: 900;
   color: white;
-  font-size: 100px;
+  font-size: 120px;
   margin-top: 10vh;
 
   text-align: center;
-  margin-bottom: 3vh;
+  margin-bottom: 5vh;
 }
 
 @keyframes title {

@@ -19,20 +19,22 @@ import "../components/styles/main.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Importing font-awesome and the plus icon
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
-
-// Importing icons
-import sun from "../assets/images/sun.svg";
-import cloudSun from "../assets/images/cloud-sun.svg";
-import cloudRain from "../assets/images/cloud-rain.svg";
-
 // Importing components from common folder
 import MainForm from "./common/MainForm";
-import MainButton from "./common/MainButton";
+import Button from "./common/Button";
 import MainUnits from "./common/MainUnits";
 import MainWrapper from "./common/MainWrapper";
 import MainForecast from "./common/MainForecast";
+
+import Dropdown from "./Dropdown";
+
+// Importing functions from utils.js
+import {
+  getTemperature,
+  convertTemp,
+  getForecastDays,
+  imageSelection,
+} from "../utils/utils";
 
 // URL configuring: 1.weather, 2.gecoding (coordinates), 3.forecast weather
 let weatherUrl = weatherApiUrl + weatherApiKey;
@@ -40,8 +42,6 @@ let geocodingUrl = geocodingApiUrl + geocodingApiKey;
 let forecastUrl = weatherForecastApiUrl + weatherApiKey;
 
 const numberForecastDays = 4;
-
-const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 class Main extends Component {
   state = {
@@ -55,6 +55,7 @@ class Main extends Component {
     units: ["C", "F", "K"],
     selectedUnit: "C",
     selectedForecastItem: 0,
+    favorites: [],
   };
 
   schema = Joi.object().keys({
@@ -68,6 +69,7 @@ class Main extends Component {
     return error ? error.details : null;
   };
 
+  
   handleChange = ({ currentTarget: input }) => {
     this.setState({ location: input.value });
   };
@@ -77,24 +79,29 @@ class Main extends Component {
 
     const { location } = this.state;
 
+    // Validation with JOI
     const error = this.validate();
 
     if (error) {
       for (let err of error) toast.error(err.message);
     }
 
+    // Weather for the current day
+    // let { data: weather } = axios.get(`${weatherUrl}&q=${location}`).then(data => data);
     let { data: weather } = await axios.get(`${weatherUrl}&q=${location}`);
 
     const { data: locationData } = await axios.get(
       `${geocodingUrl}&location=${location}`
     );
 
+    // Getting the coords using geocoding
     const coords = locationData.results[0].locations[0].latLng;
 
     let { data: weatherForecastData } = await axios.get(
       `${forecastUrl}&lat=${coords.lat}&lon=${coords.lng}`
     );
 
+    // Taking only the first 5 days
     weatherForecastData.daily.splice(numberForecastDays);
 
     weatherForecastData.daily.unshift(weather);
@@ -106,87 +113,25 @@ class Main extends Component {
     this.setState({
       weatherDesc: weather.weather[0].main,
       temperature: {
-        C: { unit: "C", value: this.convertTemp(temperature, "C") },
-        F: { unit: "F", value: this.convertTemp(temperature, "F") },
-        K: { unit: "K", value: this.convertTemp(temperature) },
+        C: { unit: "C", value: convertTemp(temperature, "C") },
+        F: { unit: "F", value: convertTemp(temperature, "F") },
+        K: { unit: "K", value: convertTemp(temperature) },
       },
     });
   };
 
-  getTemperature = (temperature) => {
-    return {
-      C: { unit: "C", value: this.convertTemp(temperature, "C") },
-      F: { unit: "F", value: this.convertTemp(temperature, "F") },
-      K: { unit: "K", value: this.convertTemp(temperature) },
-    };
-  };
+  addToFavorites = (element) => {
+    const { favorites } = this.state;
 
-  convertTemp = (temperature, unit = "K") => {
-    temperature = Math.round(temperature);
-    switch (unit) {
-      case "C":
-        temperature = Math.round(temperature - 273.15);
-        break;
-      case "F":
-        temperature = Math.round((temperature - 273.15) * 1.8 + 32);
-        break;
-      default:
-        break;
-    }
-    return temperature;
-  };
+    if (favorites.find((el) => el === element)) return null;
 
-  getForecastDays = () => {
-    const now = new Date(Date.now());
-    const startDay = now.toDateString().split(" ")[0];
-
-    let index = daysOfWeek.indexOf(startDay);
-
-    const days = [];
-    let count = 0;
-
-    while (count < numberForecastDays + 1) {
-      if (index > daysOfWeek.length - 1) index = 0;
-      days.push(daysOfWeek[index]);
-      index++;
-      count++;
-    }
-
-    return days;
-  };
-
-  imageSelection = (weatherDesc) => {
-    const regex1 = /clear/;
-    const regex2 = /cloud/;
-    const regex3 = /rain/;
-    const regex4 = /storm/;
-
-    let src, background, activeBackground;
-
-    if (weatherDesc.match(regex1)) {
-      src = sun;
-      background =
-        "linear-gradient(180.03deg, #FD8F0E 0.01%, rgba(255, 191, 117, 0.8) 110.02%";
-      activeBackground = "#ff8900";
-    } else if (weatherDesc.match(regex2)) {
-      src = cloudSun;
-      background = "linear-gradient(180deg, #0081C9 0%, #94D9FF 100%)";
-      activeBackground = "#2397D8";
-    } else if (weatherDesc.match(regex3)) {
-      src = cloudRain;
-      background = "linear-gradient(180deg, #3D515E 0%, #769EB3 100%)";
-      activeBackground = "#3D515E";
-    } else if (weatherDesc.match(regex4)) {
-      src = cloudRain;
-      background = "linear-gradient(180deg, #3D515E 0%, #769EB3 100%)";
-      activeBackground = "#3D515E";
-    }
-
-    return { src, background, activeBackground };
+    this.setState({ favorites: [...favorites, element] });
   };
 
   render() {
     const {
+      location,
+      favorites,
       units,
       selectedUnit,
       temperature,
@@ -195,15 +140,15 @@ class Main extends Component {
       selectedForecastItem,
     } = this.state;
 
-    const forecastDays = this.getForecastDays();
+    const forecastDays = getForecastDays();
 
     let { background, activeBackground } = this.state.style;
 
     if (weather.length !== 0) {
-      background = this.imageSelection(
+      background = imageSelection(
         weather[selectedForecastItem].weather[0].description
       ).background;
-      activeBackground = this.imageSelection(
+      activeBackground = imageSelection(
         weather[selectedForecastItem].weather[0].description
       ).activeBackground;
     }
@@ -211,50 +156,57 @@ class Main extends Component {
     return (
       <body style={{ background }}>
         <div className="wrapper">
-          <MainForm onChange={this.handleChange} onSubmit={this.handleSubmit} />
-
-          <MainButton icon={faPlus}/>
-
-          <MainUnits
-            units={units}
-            selectedUnit={selectedUnit}
-            onClick={(u) => this.setState({ selectedUnit: u })}
-            activeBackground={activeBackground}
+          <MainForm
+            onChange={this.handleChange}
+            onSubmit={this.handleSubmit}
+            addToFavorites={this.addToFavorites}
+            favorites={favorites}
+            location={location}
+            onClick={(location) => this.setState({ location })}
           />
 
-          {weather.length !== 0 ? (
-            <div className="main__wrapper">
-              <MainWrapper
-                weather={weather}
-                weatherDesc={weatherDesc}
-                temperature={temperature}
+          {weather.length !== 0 && (
+            <React.Fragment>
+              <MainUnits
+                units={units}
                 selectedUnit={selectedUnit}
-                selectedForecastItem={selectedForecastItem}
-                imageSelection={this.imageSelection}
+                onClick={(u) => this.setState({ selectedUnit: u })}
+                activeBackground={activeBackground}
               />
 
-              <MainForecast
-                weather={weather}
-                forecastDays={forecastDays}
-                selectedForecastItem={selectedForecastItem}
-                selectedUnit={selectedUnit}
-                activeBackground={activeBackground}
-                onClick={(index) =>
-                  this.setState({
-                    selectedForecastItem: index,
-                    weatherDesc: weather[index].weather[0].description,
-                    temperature: this.getTemperature(
-                      index === 0
-                        ? weather[index].main.temp
-                        : weather[index].temp.day
-                    ),
-                  })
-                }
-                imageSelection={this.imageSelection}
-                convertTemp={this.convertTemp}
-              />
-            </div>
-          ) : null}
+              <div className="main__wrapper">
+                <MainWrapper
+                  weather={weather}
+                  weatherDesc={weatherDesc}
+                  temperature={temperature}
+                  selectedUnit={selectedUnit}
+                  selectedForecastItem={selectedForecastItem}
+                  imageSelection={imageSelection}
+                />
+
+                <MainForecast
+                  weather={weather}
+                  forecastDays={forecastDays}
+                  selectedForecastItem={selectedForecastItem}
+                  selectedUnit={selectedUnit}
+                  activeBackground={activeBackground}
+                  onClick={(index) =>
+                    this.setState({
+                      selectedForecastItem: index,
+                      weatherDesc: weather[index].weather[0].description,
+                      temperature: getTemperature(
+                        index === 0
+                          ? weather[index].main.temp
+                          : weather[index].temp.day
+                      ),
+                    })
+                  }
+                  imageSelection={imageSelection}
+                  convertTemp={convertTemp}
+                />
+              </div>
+            </React.Fragment>
+          )}
 
           <ToastContainer />
         </div>
