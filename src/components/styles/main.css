@@ -16,7 +16,7 @@
 body {
   padding: 0;
   margin: 0;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 h1{
@@ -155,7 +155,7 @@ input::-webkit-input-placeholder {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 2vh;
+  margin-top: 22vh;
 }
 
 .main__description {
@@ -163,6 +163,7 @@ input::-webkit-input-placeholder {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-top: 10vh;
 }
 
 .forecast {
@@ -205,4 +206,27 @@ input::-webkit-input-placeholder {
 .forecast__item__img {
   width: 30px;
   height: 30px;
+}
+
+
+@media screen and (min-width: 960px){
+  *{
+    font-size: 20px;
+  }
+
+  .main__title{
+    margin-top: 5vh;
+  }
+  .forecast{
+    margin-top: 15vh;
+  }
+  .forecast__item{
+    width: 100px;
+    font-size: 20px;
+    padding: 25px;
+  }
+  .forecast__item__img{
+    width: 50px;
+    height: 50px;
+  }
 }
