@@ -10,7 +10,7 @@ const MainWrapper = ({weather, weatherDesc, temperature, selectedUnit, selectedF
               selectedUnit !== "K" ? "°" : ""
             }`}
       </h1>
-      <div className="main__container-img">
+      <div className="main__container-info">
         <img
           src={
             imageSelection(
@@ -19,8 +19,8 @@ const MainWrapper = ({weather, weatherDesc, temperature, selectedUnit, selectedF
           }
           alt=""
         />
+        <p className="main__description">{!weatherDesc ? "" : weatherDesc}</p>
       </div>
-      <p className="main__description">{!weatherDesc ? "" : weatherDesc}</p>
     </div>
   );
 };
